@@ -1,0 +1,15 @@
+#!/usr/bin/env zsh
+
+set -e
+set -o pipefail
+
+tag=docker-compilation-images-hello-world
+
+dir=$(cd $(dirname $0)/.. && pwd)
+cd $dir
+
+set -x
+
+./docker-build --tag=$tag test/hello-world
+output=$(docker run --rm -it $tag)
+[[ $output == 'Hello, world!' ]]
