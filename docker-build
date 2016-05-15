@@ -1,10 +1,12 @@
-#!/usr/bin/env ruby
+#!/usr/bin/env bundle exec ruby
 
+require 'docker-api'
+require 'fileutils'
 require 'optparse'
 require 'pathname'
-require 'tempfile'
+require 'tmpdir'
 
-Image = Struct.new(:name, :lines)
+Dockerfile = Struct.new(:name, :lines)
 
 tag = nil
 OptionParser.new do |opts|
@@ -15,24 +17,31 @@ OptionParser.new do |opts|
   end
 end.parse!
 
-path = Pathname.new(ARGV[0])
-dockerfile = (path / 'Dockerfile').readlines
-images = dockerfile.slice_before(/^NAME /)
-  .collect { |image|
-    name_line, *lines = image
+path = Pathname.new(ARGV[0]).expand_path
+parent_dockerfile = (path / 'Dockerfile').readlines
+dockerfiles = parent_dockerfile.slice_before(/^NAME /)
+  .collect { |dockerfile|
+    name_line, *lines = dockerfile
     name = name_line[5, name_line.length].strip
-    Image.new(name, lines)
+    Dockerfile.new(name, lines)
   }
 
-images.each do |image|
-  Tempfile.create [image.name, '.Dockerfile'], path do |image_dockerfile|
-    image_dockerfile.write(image.lines.join)
-    image_dockerfile.flush
-    status = system 'docker', 'build', "--file=#{image_dockerfile.path}", path.to_s
-    exit $?.exitstatus unless status
+dockerfiles.each do |dockerfile|
+  Dir.mktmpdir do |dir|
+    FileUtils.cp_r "#{path}/.", dir
+    (Pathname.new(dir) / 'Dockerfile').write(dockerfile.lines.join)
+
+    begin
+      Docker::Image.build_from_dir(dir) do |v|
+        log = JSON.parse(v)
+        if log && log.has_key?('stream')
+          puts log['stream']
+        elsif log.has_key?('errorDetail')
+          puts log['errorDetail']['message']
+        end
+      end
+    rescue Docker::Error::UnexpectedResponseError
+      exit 1
+    end
   end
 end
-
-p images.to_a
-
-exit 1
