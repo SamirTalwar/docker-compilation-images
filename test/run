@@ -10,6 +10,6 @@ cd $dir
 
 set -x
 
-./docker-build --tag=$tag test/hello-world
+./docker-build --tag=run:$tag test/hello-world
 output=$(docker run --rm -it $tag)
 [[ $output == 'Hello, world!' ]]

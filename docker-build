@@ -1,3 +1,38 @@
-#!/usr/bin/env sh
+#!/usr/bin/env ruby
 
-docker build "$@"
+require 'optparse'
+require 'pathname'
+require 'tempfile'
+
+Image = Struct.new(:name, :lines)
+
+tag = nil
+OptionParser.new do |opts|
+  opts.banner = "Usage: #{$0} [options] PATH"
+
+  opts.on '-tTAG', '--tag=TAG', 'Name and optionally a tag in the \'name:tag\' format' do |t|
+    tag = t
+  end
+end.parse!
+
+path = Pathname.new(ARGV[0])
+dockerfile = (path / 'Dockerfile').readlines
+images = dockerfile.slice_before(/^NAME /)
+  .collect { |image|
+    name_line, *lines = image
+    name = name_line[5, name_line.length].strip
+    Image.new(name, lines)
+  }
+
+images.each do |image|
+  Tempfile.create [image.name, '.Dockerfile'], path do |image_dockerfile|
+    image_dockerfile.write(image.lines.join)
+    image_dockerfile.flush
+    status = system 'docker', 'build', "--file=#{image_dockerfile.path}", path.to_s
+    exit $?.exitstatus unless status
+  end
+end
+
+p images.to_a
+
+exit 1
