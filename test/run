@@ -8,7 +8,7 @@ tag=docker-compilation-images-hello-world
 dir=$(cd $(dirname $0)/.. && pwd)
 cd $dir
 
-./docker-build --tag=run:$tag test/hello-world
+./docker-build --tag=run=$tag test/hello-world
 expected=$(echo -e 'Hello, world!\r\n')
 actual=$(docker run --rm --interactive --tty $tag)
 echo
