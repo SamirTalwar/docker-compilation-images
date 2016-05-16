@@ -1,0 +1,12 @@
+#!/usr/bin/env zsh
+
+set -e
+
+tag=samirtalwar/docker-compilation-images
+
+if [[ ! -e Gemfile.lock ]]; then
+    docker run --rm -v $PWD:/usr/src/app -w /usr/src/app ruby bundle install
+fi
+
+bundle install --path=.bundle
+bundle exec ./docker-build --tag=build=${tag}-build --tag=app=${tag} .

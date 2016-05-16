@@ -4,6 +4,19 @@ Compile your application in Docker, and ship your application as an image. Witho
 
 *Note: This is very much a proof of concept—a hacky Ruby script that has little to no error-handling and hasn't really been tested much. Use at your own risk.*
 
+That said, if you do want to use it, you can of course run it as a a Docker image:
+
+
+    docker run \
+        --rm \
+        --volume=/usr/local/bin/docker:/usr/local/bin/docker:ro \
+        --volume=/var/run/docker.sock:/var/run/docker.sock:ro \
+        --volume=$PWD:/app:ro \
+        samirtalwar/docker-compilation-images \
+        --tag=build=my-app-build
+        --tag=run=my-app
+        app
+
 ---
 
 Say you have an application. Here's one in Go.
@@ -54,7 +67,7 @@ This is really two Dockerfiles stuck together, but with a twist: the later image
 
 Our new size?
 
-    $ ./docker-build --tag=app .
+    $ ./docker-build --tag=run=app .
     ...
     $ docker inspect -f '{{ .VirtualSize }}' app
     3400732

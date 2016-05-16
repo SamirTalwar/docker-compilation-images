@@ -21,6 +21,16 @@ function assert-equal {
     fi
 }
 
+function run {
+    docker run \
+        --rm \
+        --volume=/usr/local/bin/docker:/usr/local/bin/docker:ro \
+        --volume=/var/run/docker.sock:/var/run/docker.sock:ro \
+        --volume=$PWD/test:/test:ro \
+        samirtalwar/docker-compilation-images \
+        $@
+}
+
 
 dir=$(cd $(dirname $0)/.. && pwd)
 cd $dir
@@ -31,21 +41,23 @@ else
     tests=$@
 fi
 
+./build
+
 function test-1 {
     local tag=docker-compilation-images-hello-world
-    ./docker-build --tag=run=${tag} test/hello-world
+    run --tag=run=${tag} /test/hello-world
     assert-equal "$(echo -e 'Hello, world!\r\n')" "$(docker run --rm --interactive --tty $tag)"
 }
 
 function test-2 {
     tag=docker-compilation-images-go
-    ./docker-build --tag=build=${tag}-build --tag=run=${tag} test/go
+    run --tag=build=${tag}-build --tag=run=${tag} /test/go
     assert-equal "$(echo -e 'Hello, 世界\r\n')" "$(docker run --rm --interactive --tty $tag)"
 }
 
 function test-3 {
     tag=docker-compilation-images-ruby
-    ./docker-build --tag=build=${tag}-build --tag=app=${tag} test/ruby
+    run --tag=build=${tag}-build --tag=app=${tag} /test/ruby
     assert-equal "$(echo -e 'Example Domain\r\n')" "$(docker run --rm --interactive --tty $tag)"
 }
 

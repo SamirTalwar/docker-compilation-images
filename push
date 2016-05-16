@@ -1,0 +1,8 @@
+#!/usr/bin/env zsh
+
+set -e
+
+tag=samirtalwar/docker-compilation-images
+
+./build
+docker push $tag
