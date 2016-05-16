@@ -1,0 +1,5 @@
+#!/usr/bin/env zsh
+
+set -e
+
+docker run --rm -v $PWD:/usr/src/app -w /usr/src/app ruby bundle install

@@ -1,0 +1,7 @@
+#!/usr/bin/env ruby
+
+require 'nokogiri'
+require 'open-uri'
+
+document = Nokogiri::HTML(open('http://example.com/'))
+puts document.at('h1').text

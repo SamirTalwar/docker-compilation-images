@@ -22,10 +22,30 @@ function assert-equal {
 dir=$(cd $(dirname $0)/.. && pwd)
 cd $dir
 
-tag=docker-compilation-images-hello-world
-./docker-build --tag=run=$tag test/hello-world
-assert-equal "$(echo -e 'Hello, world!\r\n')" "$(docker run --rm --interactive --tty $tag)"
+if [[ $# -eq 0 ]]; then
+    tests=(1 2 3)
+else
+    tests=$@
+fi
 
-tag=docker-compilation-images-go
-./docker-build --tag=run=$tag test/go
-assert-equal "$(echo -e 'Hello, 世界\r\n')" "$(docker run --rm --interactive --tty $tag)"
+function test-1 {
+    local tag=docker-compilation-images-hello-world
+    ./docker-build --tag=run=${tag} test/hello-world
+    assert-equal "$(echo -e 'Hello, world!\r\n')" "$(docker run --rm --interactive --tty $tag)"
+}
+
+function test-2 {
+    tag=docker-compilation-images-go
+    ./docker-build --tag=build=${tag}-build --tag=run=${tag} test/go
+    assert-equal "$(echo -e 'Hello, 世界\r\n')" "$(docker run --rm --interactive --tty $tag)"
+}
+
+function test-3 {
+    tag=docker-compilation-images-ruby
+    ./docker-build --tag=build=${tag}-build --tag=app=${tag} test/ruby
+    assert-equal "$(echo -e 'Example Domain\r\n')" "$(docker run --rm --interactive --tty $tag)"
+}
+
+for no in $tests; do
+    test-$no
+done
