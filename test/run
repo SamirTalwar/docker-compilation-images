@@ -3,19 +3,29 @@
 set -e
 set -o pipefail
 
-tag=docker-compilation-images-hello-world
+function assert-equal {
+    local expected=$1
+    local actual=$2
+
+    echo
+    [[ $expected == $actual ]] && echo 'Test passed.' || {
+        echo 'Test failed.'
+        echo 'Expected output:'
+        hexdump -C <<< $expected
+        echo 'Actual output:'
+        hexdump -C <<< $actual
+    }
+    echo
+}
+
 
 dir=$(cd $(dirname $0)/.. && pwd)
 cd $dir
 
+tag=docker-compilation-images-hello-world
 ./docker-build --tag=run=$tag test/hello-world
-expected=$(echo -e 'Hello, world!\r\n')
-actual=$(docker run --rm --interactive --tty $tag)
-echo
-[[ $expected == $actual ]] && echo 'Test passed.' || {
-    echo 'Test failed.'
-    echo 'Expected output:'
-    hexdump -C <<< $expected
-    echo 'Actual output:'
-    hexdump -C <<< $actual
-}
+assert-equal "$(echo -e 'Hello, world!\r\n')" "$(docker run --rm --interactive --tty $tag)"
+
+tag=docker-compilation-images-go
+./docker-build --tag=run=$tag test/go
+assert-equal "$(echo -e 'Hello, 世界\r\n')" "$(docker run --rm --interactive --tty $tag)"
