@@ -2,18 +2,32 @@
 
 require 'docker-api'
 require 'fileutils'
+require 'open3'
 require 'optparse'
 require 'pathname'
 require 'tmpdir'
 
+def extract(container, source_file, destination_directory)
+  destination = destination_directory / source_file
+  destination.dirname.mkpath
+  Open3.popen2('tar', 'x', '-C', destination.dirname.to_s) do |tar_in, tar_out|
+    container.copy(source_file.to_s) do |chunk|
+      tar_in << chunk
+    end
+    tar_in.close
+    tar_out.close
+  end
+end
+
 Dockerfile = Struct.new(:name, :lines)
 
-tag = nil
+tags = {}
 OptionParser.new do |opts|
   opts.banner = "Usage: #{$0} [options] PATH"
 
-  opts.on '-tTAG', '--tag=TAG', 'Name and optionally a tag in the \'name:tag\' format' do |t|
-    tag = t
+  opts.on '-tTAG', '--tag=TAG', 'Name and optionally a tag in the \'name:tag\' format' do |tag|
+    image_name, tag_name = tag.split(':')
+    tags[image_name] = tag_name
   end
 end.parse!
 
@@ -26,13 +40,49 @@ dockerfiles = parent_dockerfile.slice_before(/^NAME /)
     Dockerfile.new(name, lines)
   }
 
+images = {}
+
+failed = false
+
 dockerfiles.each do |dockerfile|
-  Dir.mktmpdir do |dir|
-    FileUtils.cp_r "#{path}/.", dir
-    (Pathname.new(dir) / 'Dockerfile').write(dockerfile.lines.join)
+  next if failed
+
+  lines = []
+  image_files = {}
+  dockerfile.lines.each do |line|
+    if line =~ /^COPY (\w+):\/(.+?) (.+)$/m
+      image_files[$1] ||= []
+      image_files[$1] << $2
+      lines << "COPY .containers/#{$1}/#{$2} #{$3}"
+    else
+      lines << line
+    end
+  end
+  dockerfile.lines = lines
+
+  Dir.mktmpdir do |dir_string|
+    dir = Pathname.new(dir_string)
+
+    (dir / '.containers').mkdir unless image_files.empty?
+    image_files.each do |image_name, files|
+      container = Docker::Container.create('Image' => images[image_name].id, 'Cmd' => ['true'])
+      destination_directory = dir / '.containers' / image_name
+
+      begin
+        container.start
+        files.each do |file|
+          extract container, file, destination_directory
+        end
+      ensure
+        container.delete
+      end
+    end
+
+    FileUtils.cp_r "#{path}/.", dir.to_s
+    (dir / 'Dockerfile').write(dockerfile.lines.join)
 
     begin
-      Docker::Image.build_from_dir(dir) do |v|
+      images[dockerfile.name] = Docker::Image.build_from_dir(dir_string) do |v|
         log = JSON.parse(v)
         if log && log.has_key?('stream')
           puts log['stream']
@@ -41,7 +91,17 @@ dockerfiles.each do |dockerfile|
         end
       end
     rescue Docker::Error::UnexpectedResponseError
-      exit 1
+      failed = true
     end
   end
 end
+
+images.each do |image_name, image|
+  if tags[image_name]
+    image.tag('repo' => tags[image_name])
+  else
+    image.remove
+  end
+end
+
+exit 1 if failed
