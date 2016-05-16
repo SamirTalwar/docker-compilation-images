@@ -1,21 +1,24 @@
 #!/usr/bin/env zsh
 
 set -e
-set -o pipefail
 
 function assert-equal {
     local expected=$1
     local actual=$2
 
     echo
-    [[ $expected == $actual ]] && echo 'Test passed.' || {
+    if [[ $expected == $actual ]]; then
+        echo 'Test passed.'
+        echo
+    else
         echo 'Test failed.'
         echo 'Expected output:'
         hexdump -C <<< $expected
         echo 'Actual output:'
         hexdump -C <<< $actual
-    }
-    echo
+        echo
+        return 1
+    fi
 }
 
 
