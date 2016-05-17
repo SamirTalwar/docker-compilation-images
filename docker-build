@@ -26,7 +26,7 @@ OptionParser.new do |opts|
   opts.banner = "Usage: #{$0} [options] PATH"
 
   opts.on '-tTAG', '--tag=TAG', 'Image tag, in the format <DOCKERFILE-NAME>=<NAME>:<TAG>' do |tag|
-    image_name, tag_name = tag.split('=')
+    image_name, tag_name = tag.split('=', 2)
     tags[image_name] = tag_name
   end
 end.parse!
