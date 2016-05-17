@@ -67,7 +67,7 @@ The last one can omit the name, as it's assumed to be the one we actually care a
 
 Our new size?
 
-    $ ./docker-build --tag=run=app .
+    $ ./docker-build --tag=app .
     ...
     $ docker inspect -f '{{ .VirtualSize }}' app
     3400732
