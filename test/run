@@ -24,7 +24,6 @@ function assert-equal {
 function run {
     docker run \
         --rm \
-        --volume=/usr/local/bin/docker:/usr/local/bin/docker:ro \
         --volume=/var/run/docker.sock:/var/run/docker.sock:ro \
         --volume=$PWD/test:/test:ro \
         samirtalwar/docker-compilation-images \

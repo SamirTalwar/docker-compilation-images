@@ -9,13 +9,12 @@ That said, if you do want to use it, you can of course run it as a a Docker imag
 
     docker run \
         --rm \
-        --volume=/usr/local/bin/docker:/usr/local/bin/docker:ro \
         --volume=/var/run/docker.sock:/var/run/docker.sock:ro \
         --volume=$PWD:/app:ro \
         samirtalwar/docker-compilation-images \
         --tag=build=my-app-build
         --tag=run=my-app
-        app
+        /app
 
 ---
 
