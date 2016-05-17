@@ -7,6 +7,10 @@ require 'optparse'
 require 'pathname'
 require 'tmpdir'
 
+DEFAULT_IMAGE_NAME = ''
+
+Dockerfile = Struct.new(:name, :lines)
+
 def extract(container, source_file, destination_directory)
   destination = destination_directory / source_file
   destination.dirname.mkpath
@@ -19,22 +23,26 @@ def extract(container, source_file, destination_directory)
   end
 end
 
-Dockerfile = Struct.new(:name, :lines)
-
 tags = {}
 OptionParser.new do |opts|
   opts.banner = "Usage: #{$0} [options] PATH"
 
   opts.on '-tTAG', '--tag=TAG', 'Image tag, in the format <DOCKERFILE-NAME>=<NAME>:<TAG>' do |tag|
     image_name, tag_name = tag.split('=', 2)
+    if tag_name.nil?
+      image_name, tag_name = [DEFAULT_IMAGE_NAME, image_name]
+    end
     tags[image_name] = tag_name
   end
 end.parse!
 
 path = Pathname.new(ARGV[0]).expand_path
 parent_dockerfile = (path / 'Dockerfile').readlines
-dockerfiles = parent_dockerfile.slice_before(/^NAME /)
-  .collect { |dockerfile|
+dockerfiles = parent_dockerfile
+  .slice_when { |before, after|
+    after.start_with?('NAME ') || (!before.start_with?('NAME ') && after.start_with?('FROM '))
+  }.collect { |dockerfile|
+    dockerfile.unshift('NAME ' + DEFAULT_IMAGE_NAME) unless dockerfile[0].start_with?('NAME ')
     name_line, *lines = dockerfile
     name = name_line[5, name_line.length].strip
     Dockerfile.new(name, lines)

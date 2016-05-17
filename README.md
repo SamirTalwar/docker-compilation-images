@@ -13,7 +13,7 @@ That said, if you do want to use it, you can of course run it as a a Docker imag
         --volume=$PWD:/app:ro \
         samirtalwar/docker-compilation-images \
         --tag=build=my-app-build
-        --tag=run=my-app
+        --tag=my-app
         /app
 
 ---
@@ -56,13 +56,14 @@ Here's a Dockerfile that takes advantage of compilation images.
     NAME build
     FROM golang:onbuild
 
-    NAME run
     FROM busybox
     WORKDIR /app
     COPY build:/go/bin/app .
     CMD ["./app"]
 
 This is really two Dockerfiles stuck together, but with a twist: the later images can reference earlier ones. This means that you can build your application in Docker, then easily yank the final product out with a souped-up `COPY` directive and add it to a minimal image. Here, we're using `busybox`, which is about as tiny as you can get.
+
+The last one can omit the name, as it's assumed to be the one we actually care about.
 
 Our new size?
 

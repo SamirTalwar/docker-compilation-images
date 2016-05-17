@@ -9,4 +9,4 @@ if [[ ! -e Gemfile.lock ]]; then
 fi
 
 bundle install --path=.bundle
-bundle exec ./docker-build --tag=build=${tag}-build --tag=app=${tag} .
+bundle exec ./docker-build --tag=build=${tag}-build --tag=${tag} .

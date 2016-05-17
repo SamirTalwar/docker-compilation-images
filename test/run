@@ -37,7 +37,7 @@ cd $dir
 if [[ $# -eq 0 ]]; then
     tests=(
         hello-world
-        go
+        default-name
         copy-directories
     )
 else
@@ -49,19 +49,22 @@ fi
 function test-hello-world {
     local tag=docker-compilation-images-hello-world
     run --tag=run=${tag} /test/hello-world
-    assert-equal "$(echo -e 'Hello, world!\r\n')" "$(docker run --rm --interactive --tty $tag)"
+    actual="$(docker run --rm --interactive --tty $tag)"
+    assert-equal "$(echo -e 'Hello, world!\r\n')" $actual
 }
 
-function test-go {
-    tag=docker-compilation-images-go
-    run --tag=build=${tag}-build --tag=run=${tag} /test/go
-    assert-equal "$(echo -e 'Hello, 世界\r\n')" "$(docker run --rm --interactive --tty $tag)"
+function test-default-name {
+    tag=docker-compilation-images-default-name
+    run --tag=build=${tag}-build --tag=${tag} /test/default-name
+    actual="$(docker run --rm --interactive --tty $tag)"
+    assert-equal "$(echo -e 'Hello, 世界\r\n')" $actual
 }
 
 function test-copy-directories {
     tag=docker-compilation-images-copy-directories
     run --tag=build=${tag}-build --tag=app=${tag} /test/copy-directories
-    assert-equal "$(echo -e 'Example Domain\r\n')" "$(docker run --rm --interactive --tty $tag)"
+    actual="$(docker run --rm --interactive --tty $tag)"
+    assert-equal "$(echo -e 'Example Domain\r\n')" $actual
 }
 
 for name in $tests; do

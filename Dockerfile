@@ -6,7 +6,6 @@ COPY Gemfile ./
 COPY Gemfile.lock ./
 RUN bundle install --path=.bundle
 
-NAME app
 FROM ruby:slim
 WORKDIR /app
 COPY build:/usr/src/app/.bundle ./.bundle/
