@@ -73,3 +73,7 @@ Our new size?
     3400732
 
 3 MB. Busybox (approximately 1 MB) plus our application binary. That's it. No fluff, less attack surface and I can push it to my registry in no time.
+
+---
+
+[Thanks to @sheerun for the `NAME` and `COPY` syntax used in this project.](https://github.com/docker/docker/issues/13026#issuecomment-161322372)
