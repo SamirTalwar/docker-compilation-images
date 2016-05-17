@@ -99,8 +99,6 @@ end
 images.each do |image_name, image|
   if tags[image_name]
     image.tag('repo' => tags[image_name])
-  else
-    image.remove
   end
 end
 
