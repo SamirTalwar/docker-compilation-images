@@ -35,31 +35,35 @@ dir=$(cd $(dirname $0)/.. && pwd)
 cd $dir
 
 if [[ $# -eq 0 ]]; then
-    tests=(1 2 3)
+    tests=(
+        hello-world
+        go
+        ruby
+    )
 else
     tests=$@
 fi
 
 ./build
 
-function test-1 {
+function test-hello-world {
     local tag=docker-compilation-images-hello-world
     run --tag=run=${tag} /test/hello-world
     assert-equal "$(echo -e 'Hello, world!\r\n')" "$(docker run --rm --interactive --tty $tag)"
 }
 
-function test-2 {
+function test-go {
     tag=docker-compilation-images-go
     run --tag=build=${tag}-build --tag=run=${tag} /test/go
     assert-equal "$(echo -e 'Hello, 世界\r\n')" "$(docker run --rm --interactive --tty $tag)"
 }
 
-function test-3 {
+function test-ruby {
     tag=docker-compilation-images-ruby
     run --tag=build=${tag}-build --tag=app=${tag} /test/ruby
     assert-equal "$(echo -e 'Example Domain\r\n')" "$(docker run --rm --interactive --tty $tag)"
 }
 
-for no in $tests; do
-    test-$no
+for name in $tests; do
+    test-$name
 done
