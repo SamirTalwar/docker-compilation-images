@@ -38,7 +38,7 @@ if [[ $# -eq 0 ]]; then
     tests=(
         hello-world
         go
-        ruby
+        copy-directories
     )
 else
     tests=$@
@@ -58,9 +58,9 @@ function test-go {
     assert-equal "$(echo -e 'Hello, 世界\r\n')" "$(docker run --rm --interactive --tty $tag)"
 }
 
-function test-ruby {
-    tag=docker-compilation-images-ruby
-    run --tag=build=${tag}-build --tag=app=${tag} /test/ruby
+function test-copy-directories {
+    tag=docker-compilation-images-copy-directories
+    run --tag=build=${tag}-build --tag=app=${tag} /test/copy-directories
     assert-equal "$(echo -e 'Example Domain\r\n')" "$(docker run --rm --interactive --tty $tag)"
 }
 
