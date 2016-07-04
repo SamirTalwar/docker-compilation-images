@@ -47,21 +47,21 @@ fi
 ./build
 
 function test-hello-world {
-    local tag=docker-compilation-images-hello-world
+    local tag=samirtalwar/docker-compilation-images-test-hello-world
     run --tag=run=${tag} /test/hello-world
     actual="$(docker run --rm --interactive --tty $tag)"
     assert-equal "$(echo -e 'Hello, world!\r\n')" $actual
 }
 
 function test-default-name {
-    tag=docker-compilation-images-default-name
+    local tag=samirtalwar/docker-compilation-images-test-default-name
     run --tag=build=${tag}-build --tag=${tag} /test/default-name
     actual="$(docker run --rm --interactive --tty $tag)"
     assert-equal "$(echo -e 'Hello, 世界\r\n')" $actual
 }
 
 function test-copy-directories {
-    tag=docker-compilation-images-copy-directories
+    local tag=samirtalwar/docker-compilation-images-test-copy-directories
     run --tag=build=${tag}-build --tag=app=${tag} /test/copy-directories
     actual="$(docker run --rm --interactive --tty $tag)"
     assert-equal "$(echo -e 'Example Domain\r\n')" $actual
