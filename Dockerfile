@@ -6,7 +6,7 @@ COPY Gemfile ./
 COPY Gemfile.lock ./
 RUN bundle install --path=.bundle
 
-FROM ruby:slim
+FROM ruby:alpine
 WORKDIR /app
 COPY build:/usr/src/app/.bundle ./.bundle/
 COPY docker-build ./
