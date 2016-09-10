@@ -44,7 +44,7 @@ else
     tests=$@
 fi
 
-./build
+./scripts/build
 
 function test-hello-world {
     local tag=samirtalwar/docker-compilation-images-test-hello-world

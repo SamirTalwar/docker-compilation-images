@@ -4,5 +4,5 @@ set -e
 
 tag=samirtalwar/docker-compilation-images
 
-./build
+./scripts/build
 docker push $tag
