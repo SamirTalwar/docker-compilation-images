@@ -90,12 +90,14 @@ dockerfiles.each do |dockerfile|
     (dir / 'Dockerfile').write(dockerfile.lines.join)
 
     begin
-      images[dockerfile.name] = Docker::Image.build_from_dir(dir_string) do |v|
-        log = JSON.parse(v)
-        if log && log.has_key?('stream')
-          puts log['stream']
-        elsif log.has_key?('errorDetail')
-          puts log['errorDetail']['message']
+      images[dockerfile.name] = Docker::Image.build_from_dir(dir_string) do |streaming_lines|
+        streaming_lines.each_line do |line|
+          log = JSON.parse(line)
+          if log && log.has_key?('stream')
+            print log['stream']
+          elsif log.has_key?('errorDetail')
+            puts log['errorDetail']['message']
+          end
         end
       end
     rescue Docker::Error::UnexpectedResponseError
